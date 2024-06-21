@@ -1,10 +1,18 @@
 package com.alurachallenges.foro_hub.controllers;
 
 import com.alurachallenges.foro_hub.dto.topic.TopicData;
+import com.alurachallenges.foro_hub.dto.topic.TopicListData;
+import com.alurachallenges.foro_hub.models.Topic;
+import com.alurachallenges.foro_hub.models.User;
+import com.alurachallenges.foro_hub.repositories.TopicRepository;
 import com.alurachallenges.foro_hub.services.TopicService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +24,9 @@ public class TopicController
 
     @Autowired
     private TopicService service;
+
+    @Autowired
+    TopicRepository repository;
 
     // Publica un nuevo topico
     @PostMapping
@@ -36,11 +47,41 @@ public class TopicController
         return ResponseEntity.ok(responseBody);
     }
 
-    // TODO: Trae todos los topicos
+    // Trae todos los topicos
     @GetMapping
-    public void getTopics()
+    public Page<TopicListData> getTopics(
+            @PageableDefault(size = 5, sort = "fechaCreacion", direction = Sort.Direction.DESC)
+            Pageable pageable
+    )
     {
+        return repository.findByStatusTrue(pageable)
+                .map(TopicListData::new);
+    }
 
+    // Trae un topico por ID
+    @GetMapping("/{id}")
+    @Transactional
+    public ResponseEntity getATopic(
+            @PathVariable
+            Long id
+    )
+    {
+        Topic topic = repository.getReferenceById(id);
+        var topicData = new TopicData(
+          topic.getId(),
+          topic.getUsuario().getId(),
+          topic.getCurso(),
+          topic.getTitulo(),
+          topic.getMensaje(),
+          topic.getFechaCreacion()
+        );
+
+        Object responseBody = new Object() {
+            public final int httpStatus = HttpStatus.OK.value();
+            public final Object topic = topicData;
+        };
+
+        return ResponseEntity.ok(responseBody);
     }
 
 }
