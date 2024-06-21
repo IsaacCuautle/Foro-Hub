@@ -1,5 +1,6 @@
 package com.alurachallenges.foro_hub.models;
 
+import com.alurachallenges.foro_hub.dto.TopicDataUpdate;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,4 +29,22 @@ public class Topic
     private  String mensaje;
     private LocalDateTime fechaCreacion;
     private Boolean status = Boolean.TRUE;
+
+
+    public void updateTopicData(
+            TopicDataUpdate topic
+    )
+    {
+        if (topic.titulo() != null)
+        {
+                this.titulo = topic.titulo();
+        }
+        if(topic.mensaje() != null) {
+            this.mensaje = topic.mensaje();
+        }
+    }
+
+    public void disableTopic() {
+        this.status = false;
+    }
 }
